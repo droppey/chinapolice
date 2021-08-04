@@ -21,8 +21,14 @@ REACTIONS = [
 
 
 class reaction(commands.Cog):
+    def write_chinaword(self):
+        with open(os.path.join(__location__, 'chinaword.txt'), 'w', encoding='utf-8') as f:
+            f.write('\n'.join(self.china_word))
+            f.write('\n')
+
     def __init__(self, bot):
         self.bot = bot
+        self.bot.__exit__ = self.write_chinaword
         random.seed(int(time.time()))
         with open(os.path.join(__location__, 'chinaword.txt'), 'r', encoding='utf-8') as f:
             self.china_word = [line[:-1] for line in f]
@@ -55,9 +61,10 @@ class reaction(commands.Cog):
             return
         self.china_word.append(arg.lower())
         await ctx.channel.send('親 已經為您更新支語資料庫啦哈')
-        with open(os.path.join(__location__, 'chinaword.txt'), 'w', encoding='utf-8') as f:
-            f.write('\n'.join(self.china_word))
-            f.write('\n')
+        if len(self.china_word) % 10:
+            self.write_chinaword()
+            jieba.load_userdict(os.path.join(__location__, 'chinaword.txt'))
+
 
 def setup(bot):
     bot.add_cog(reaction(bot))
