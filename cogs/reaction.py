@@ -10,7 +10,7 @@ import json
 
 __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
 
-with open(os.path.join(__location__, 'reation_setting.json'), 'r', encoding='utf-8') as setting_file:
+with open(os.path.join(__location__, 'reaction_setting.json'), 'r', encoding='utf-8') as setting_file:
     SETTINGS = json.load(setting_file)
 
 
