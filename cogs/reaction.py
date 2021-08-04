@@ -31,6 +31,8 @@ class reaction(commands.Cog):
     @commands.Cog.listener()
     async def on_message(self, msg):
         ctx = await self.bot.get_context(msg)
+        if ctx.command:
+            return
         if ctx.valid :
             return
         messageContent = msg.content
@@ -53,16 +55,16 @@ class reaction(commands.Cog):
         if not arg:
             await ctx.channel.send('usage: $update_word <zhi yu>')
             return
-        if arg.lower() in self.china_word:
+        arg = convert(arg.lower(), 'zh-hant')
+        if arg in self.china_word:
             await ctx.channel.send('親 這個支語已被收錄啦哈')
             return
-        self.china_word.append(arg.lower())
-        await ctx.channel.send('親 已經為您更新支語資料庫啦哈')
+        self.china_word.append(arg)
+        await ctx.channel.send('親 已經為您更新支語數據庫啦哈')
         with open(os.path.join(__location__, 'chinaword.txt'), 'w', encoding='utf-8') as f:
             f.write('\n'.join(self.china_word))
             f.write('\n')
-        if len(self.china_word) % 10:
-            jieba.load_userdict(os.path.join(__location__, 'chinaword.txt'))
+        jieba.add_word(arg)
 
 def setup(bot):
     bot.add_cog(reaction(bot))
