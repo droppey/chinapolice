@@ -55,7 +55,7 @@ class reaction(commands.Cog):
         self.china_word.append(arg)
         await ctx.channel.send('親 已經為您更新支語資料庫啦哈')
 
-    def cog_unload(self):
+    def __exit__(self):
         with open(os.path.join(__location__, 'chinaword.txt'), 'w', encoding='utf-8') as f:
             json.dump(self.china_word, f)
 
