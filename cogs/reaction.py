@@ -30,6 +30,9 @@ class reaction(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, msg):
+        ctx = await self.bot.get_context(msg)
+        if ctx.valid :
+            return
         messageContent = msg.content
         converted_message = convert(messageContent.lower(), 'zh-hant')
         seg_list = jieba.cut(converted_message)
