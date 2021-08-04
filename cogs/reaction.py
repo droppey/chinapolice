@@ -36,10 +36,10 @@ class reaction(commands.Cog):
 
         for seg in seg_list:
             if seg in self.china_word:
-                await msg.add_reaction('<:zu2:815557862528122890>')
-                author = msg.author.id
                 if msg.author.bot:
                     break
+                await msg.add_reaction('<:zu2:815557862528122890>')
+                author = msg.author.id
                 await msg.channel.send(f'<@{author}> 支語，滾！')
                 mesg = random.choice(REACTIONS)
                 await msg.channel.send(mesg)
@@ -57,6 +57,7 @@ class reaction(commands.Cog):
         await ctx.channel.send('親 已經為您更新支語資料庫啦哈')
         with open(os.path.join(__location__, 'chinaword.txt'), 'w', encoding='utf-8') as f:
             f.write('\n'.join(self.china_word))
+            f.write('\n')
 
 def setup(bot):
     bot.add_cog(reaction(bot))
