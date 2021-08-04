@@ -10,20 +10,14 @@ import json
 
 __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
 
-REACTIONS = [
-    f'https://cdn.discordapp.com/attachments/870138830949322783/872335866331295744/LmVdMYT.jpg',
-    f'https://cdn.discordapp.com/attachments/870138830949322783/872335866662649876/C_Chat.M.1595128807.A.E19.jpg',
-    f'https://cdn.discordapp.com/attachments/870138830949322783/872335869820940308/bx8C06k.png',
-    f'https://cdn.discordapp.com/attachments/870138830949322783/872335872639504414/iYBXvZg.jpg',
-    f'https://cdn.discordapp.com/attachments/870138830949322783/872335873646166046/iDLV0L8.jpg',
-    f'https://cdn.discordapp.com/attachments/870138830949322783/872335874396938290/Ja8PdF5.png',
-    f'https://cdn.discordapp.com/attachments/870138830949322783/872335874971553828/7mLrCNah.jpg'
-]
+with open(os.path.join(__location__, 'reation_setting.json'), 'r', encoding='utf-8') as setting_file:
+    SETTINGS = json.load(setting_file)
 
 
 class reaction(commands.Cog):
-    def __init__(self, bot):
+    async def __init__(self, bot):
         self.bot = bot
+        self.ch = await self.bot.fetch_channel(SETTINGS['id'])
         random.seed(int(time.time()))
         with open(os.path.join(__location__, 'chinaword.txt'), 'r', encoding='utf-8') as f:
             self.bot.china_word = [line[:-1] for line in f]
@@ -37,6 +31,8 @@ class reaction(commands.Cog):
         if ctx.valid :
             return
         messageContent = msg.content
+        if 'https://' in messageContent or 'http://' in messageContent:
+            return
         converted_message = convert(messageContent.lower(), 'zh-hant')
         seg_list = jieba.cut(converted_message)
 
@@ -46,13 +42,21 @@ class reaction(commands.Cog):
                     return
                 await msg.add_reaction('<:zu2:815557862528122890>')
                 author = msg.author.id
-                await msg.channel.send(f'<@{author}> 支語，滾！')
-                mesg = random.choice(REACTIONS)
-                await msg.channel.send(mesg)
+                await self.ch.send(f'<@{author}> 支語，滾！')
+                mesg = random.choice(SETTINGS['reaction_image'])
+                await self.ch.send(mesg)
                 return
+    @commands.command()
+    @commands.has_role(SETTINGS['maintainer_name'])
+    async def bind_channel(self, ctx, arg=None):
+        if arg:
+            await ctx.channel.send('usage: $bind_channel')
+            return
+        self.ch = ctx.channel
+        await ctx.channel.send('綁定成功')
 
     @commands.command()
-    @commands.has_role('管管扳手')
+    @commands.has_role(SETTINGS['maintainer_name'])
     async def remove_word(self, ctx, arg=None):
         if not arg:
             await ctx.channel.send('usage: $remove_word <fei zhi yu>')
