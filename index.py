@@ -42,5 +42,9 @@ for filename in os.listdir(os.path.join(__location__, 'cogs')):
     if filename.endswith('.py'):
         bot.load_extension(f'cogs.{filename[:-3]}')
 
-
-bot.run(jdata['token'])
+try:
+    bot.run(jdata['token'])
+finally:
+    with open(os.path.join(__location__, 'cogs', 'chinaword.txt'), 'w', encoding='utf-8') as f:
+        f.write('\n'.join(bot.china_word))
+        f.write('\n')
