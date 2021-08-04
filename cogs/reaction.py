@@ -35,7 +35,7 @@ class reaction(commands.Cog):
         seg_list = jieba.cut(converted_message, cut_all=True)
 
         for seg in seg_list:
-            if seg in self.china_word:
+            if seg.lower() in self.china_word:
                 await msg.add_reaction('<:zu2:815557862528122890>')
                 author = msg.author.id
                 if msg.author.bot:
@@ -50,10 +50,10 @@ class reaction(commands.Cog):
         if not arg:
             await ctx.channel.send('usage: $update_word <zhi yu>')
             return
-        if arg in self.china_word:
+        if arg.lower() in self.china_word:
             await ctx.channel.send('親 這個支語已被收錄啦哈')
             return
-        self.china_word.append(arg)
+        self.china_word.append(arg.lower())
         await ctx.channel.send('親 已經為您更新支語資料庫啦哈')
         with open(os.path.join(__location__, 'chinaword.txt'), 'w', encoding='utf-8') as f:
             f.write('\n'.join(self.china_word))
