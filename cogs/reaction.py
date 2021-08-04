@@ -32,18 +32,18 @@ class reaction(commands.Cog):
     async def on_message(self, msg):
         messageContent = msg.content
         converted_message = convert(messageContent.lower(), 'zh-hant')
-        seg_list = jieba.cut(converted_message, cut_all=True)
+        seg_list = jieba.cut(converted_message)
 
         for seg in seg_list:
             if seg in self.china_word:
                 if msg.author.bot:
-                    break
+                    return
                 await msg.add_reaction('<:zu2:815557862528122890>')
                 author = msg.author.id
                 await msg.channel.send(f'<@{author}> 支語，滾！')
                 mesg = random.choice(REACTIONS)
                 await msg.channel.send(mesg)
-                break
+                return
 
     @commands.command()
     async def update_word(self, ctx, arg = None):
@@ -58,6 +58,8 @@ class reaction(commands.Cog):
         with open(os.path.join(__location__, 'chinaword.txt'), 'w', encoding='utf-8') as f:
             f.write('\n'.join(self.china_word))
             f.write('\n')
+        if len(self.china_word) % 10:
+            jieba.load_userdict(os.path.join(__location__, 'chinaword.txt'))
 
 def setup(bot):
     bot.add_cog(reaction(bot))
