@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from discord.ext import commands
 from zhconv import convert
 import random
@@ -49,6 +50,20 @@ class reaction(commands.Cog):
                 mesg = random.choice(REACTIONS)
                 await msg.channel.send(mesg)
                 return
+
+    @commands.command()
+    @commands.has_role('管管板手')
+    async def remove_word(self, ctx, arg=None):
+        if not arg:
+            await ctx.channel.send('usage: $remove_word <fei zhi yu>')
+            return
+        arg = convert(arg.lower(), 'zh-hant')
+        if arg not in self.bot.china_word:
+            await ctx.channel.send('親 這個詞沒被誤認成支語啊 您佬再檢查一下唄')
+            return
+        self.bot.china_word.remove(arg)
+        await ctx.channel.send('親 已經為您更新支語數據庫啦哈 謝謝了哎')
+        jieba.del_word(arg)
 
     @commands.command()
     async def update_word(self, ctx, arg = None):
