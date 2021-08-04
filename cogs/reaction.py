@@ -7,8 +7,7 @@ import os
 import jieba
 import json
 
-__location__ = os.path.realpath(
-    os.path.join(os.getcwd(), os.path.dirname(__file__)))
+__location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
 
 REACTIONS = [
     f'https://cdn.discordapp.com/attachments/870138830949322783/872335866331295744/LmVdMYT.jpg',
@@ -25,14 +24,15 @@ class reaction(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         random.seed(int(time.time()))
-        with open(os.path.join(__location__, "chinaword.txt"), "r", encoding='utf-8') as f:
-            self.china_word = json.load(f)
+        with open(os.path.join(__location__, 'chinaword.txt'), 'r', encoding='utf-8') as f:
+            self.china_word = [line[:-1] for line in f]
+        jieba.load_userdict(os.path.join(__location__, 'chinaword.txt'))
 
     @commands.Cog.listener()
     async def on_message(self, msg):
         messageContent = msg.content
         converted_message = convert(messageContent, 'zh-hant')
-        seg_list = jieba.cut(converted_message)
+        seg_list = jieba.cut(converted_message, cut_all=True)
         for seg in seg_list:
             if seg in self.china_word:
                 await msg.add_reaction('<:zu2:815557862528122890>')
@@ -57,8 +57,7 @@ class reaction(commands.Cog):
 
     def __exit__(self):
         with open(os.path.join(__location__, 'chinaword.txt'), 'w', encoding='utf-8') as f:
-            json.dump(self.china_word, f)
-
+            f.write('\n'.join(self.china_word))
 
 def setup(bot):
     bot.add_cog(reaction(bot))
