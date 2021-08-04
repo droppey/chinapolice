@@ -25,7 +25,7 @@ class reaction(commands.Cog):
         self.bot = bot
         random.seed(int(time.time()))
         with open(os.path.join(__location__, 'chinaword.txt'), 'r', encoding='utf-8') as f:
-            self.china_word = [line[:-1] for line in f]
+            self.bot.china_word = [line[:-1] for line in f]
         jieba.load_userdict(os.path.join(__location__, 'chinaword.txt'))
 
     @commands.Cog.listener()
@@ -40,7 +40,7 @@ class reaction(commands.Cog):
         seg_list = jieba.cut(converted_message)
 
         for seg in seg_list:
-            if seg in self.china_word:
+            if seg in self.bot.china_word:
                 if msg.author.bot:
                     return
                 await msg.add_reaction('<:zu2:815557862528122890>')
@@ -56,14 +56,11 @@ class reaction(commands.Cog):
             await ctx.channel.send('usage: $update_word <zhi yu>')
             return
         arg = convert(arg.lower(), 'zh-hant')
-        if arg in self.china_word:
+        if arg in self.bot.china_word:
             await ctx.channel.send('親 這個支語已被收錄啦哈')
             return
-        self.china_word.append(arg)
+        self.bot.china_word.append(arg)
         await ctx.channel.send('親 已經為您更新支語數據庫啦哈')
-        with open(os.path.join(__location__, 'chinaword.txt'), 'w', encoding='utf-8') as f:
-            f.write('\n'.join(self.china_word))
-            f.write('\n')
         jieba.add_word(arg)
 
 def setup(bot):
