@@ -52,7 +52,7 @@ class reaction(commands.Cog):
                 return
 
     @commands.command()
-    @commands.has_role('管管板手')
+    @commands.has_role('管管扳手')
     async def remove_word(self, ctx, arg=None):
         if not arg:
             await ctx.channel.send('usage: $remove_word <fei zhi yu>')
