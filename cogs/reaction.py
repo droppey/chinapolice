@@ -15,9 +15,9 @@ with open(os.path.join(__location__, 'reaction_setting.json'), 'r', encoding='ut
 
 
 class reaction(commands.Cog):
-    async def __init__(self, bot):
+    def __init__(self, bot):
         self.bot = bot
-        self.ch = await self.bot.fetch_channel(SETTINGS['id'])
+        self.ch = self.bot.fetch_channel(SETTINGS['id'])
         random.seed(int(time.time()))
         with open(os.path.join(__location__, 'chinaword.txt'), 'r', encoding='utf-8') as f:
             self.bot.china_word = [line[:-1] for line in f]
