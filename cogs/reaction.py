@@ -31,8 +31,9 @@ class reaction(commands.Cog):
     @commands.Cog.listener()
     async def on_message(self, msg):
         messageContent = msg.content
-        converted_message = convert(messageContent, 'zh-hant')
+        converted_message = convert(messageContent.lower(), 'zh-hant')
         seg_list = jieba.cut(converted_message, cut_all=True)
+
         for seg in seg_list:
             if seg in self.china_word:
                 await msg.add_reaction('<:zu2:815557862528122890>')
