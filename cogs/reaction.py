@@ -35,7 +35,7 @@ class reaction(commands.Cog):
         seg_list = jieba.cut(converted_message, cut_all=True)
 
         for seg in seg_list:
-            if seg.lower() in self.china_word:
+            if seg in self.china_word:
                 await msg.add_reaction('<:zu2:815557862528122890>')
                 author = msg.author.id
                 if msg.author.bot:
