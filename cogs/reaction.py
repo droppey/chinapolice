@@ -13,19 +13,27 @@ __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file
 with open(os.path.join(__location__, 'reaction_setting.json'), 'r', encoding='utf-8') as setting_file:
     SETTINGS = json.load(setting_file)
 
+class Reaction(commands.Cog):
 
-class reaction(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.ch = self.bot.fetch_channel(SETTINGS['id'])
         random.seed(int(time.time()))
+        self.status = 'not_ready'
+        self.ch = None
         with open(os.path.join(__location__, 'chinaword.txt'), 'r', encoding='utf-8') as f:
             self.bot.china_word = [line[:-1] for line in f]
         jieba.load_userdict(os.path.join(__location__, 'chinaword.txt'))
 
     @commands.Cog.listener()
+    async def on_ready(self):
+        self.ch = await self.bot.fetch_channel(int(SETTINGS['id']))
+        self.status = 'ready'
+
+    @commands.Cog.listener()
     async def on_message(self, msg):
         ctx = await self.bot.get_context(msg)
+        if self.status != 'ready':
+            return
         if ctx.valid :
             return
         messageContent = msg.content
@@ -44,9 +52,12 @@ class reaction(commands.Cog):
                 mesg = random.choice(SETTINGS['reaction_image'])
                 await self.ch.send(mesg)
                 return
+
     @commands.command()
     @commands.has_role(SETTINGS['maintainer_name'])
     async def bind_channel(self, ctx, arg=None):
+        if self.status != 'ready':
+            return
         if arg:
             await ctx.channel.send('usage: $bind_channel')
             return
@@ -56,6 +67,8 @@ class reaction(commands.Cog):
     @commands.command()
     @commands.has_role(SETTINGS['maintainer_name'])
     async def remove_word(self, ctx, arg=None):
+        if self.status != 'ready':
+            return
         if not arg:
             await ctx.channel.send('usage: $remove_word <fei zhi yu>')
             return
@@ -69,6 +82,8 @@ class reaction(commands.Cog):
 
     @commands.command()
     async def update_word(self, ctx, arg = None):
+        if self.status != 'ready':
+            return
         if not arg:
             await ctx.channel.send('usage: $update_word <zhi yu>')
             return
@@ -80,5 +95,7 @@ class reaction(commands.Cog):
         await ctx.channel.send('親 已經為您更新支語數據庫啦哈')
         jieba.add_word(arg)
 
+
 def setup(bot):
-    bot.add_cog(reaction(bot))
+    bot.add_cog(Reaction(bot))
+
