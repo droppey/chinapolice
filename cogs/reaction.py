@@ -26,8 +26,6 @@ class reaction(commands.Cog):
     @commands.Cog.listener()
     async def on_message(self, msg):
         ctx = await self.bot.get_context(msg)
-        if ctx.command:
-            return
         if ctx.valid :
             return
         messageContent = msg.content
