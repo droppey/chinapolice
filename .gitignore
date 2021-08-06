@@ -118,3 +118,5 @@ config.json
 .replit
 keep_alive.py
 pyproject.toml
+poetry.lock
+index.py
