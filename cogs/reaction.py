@@ -68,7 +68,7 @@ class Reaction(commands.Cog):
     @commands.command()
     @commands.has_role(SETTINGS['maintainer_name'])
     async def remove_word(self, ctx, arg=None):
-        if arg == None or len(arg) != 1:
+        if not arg or len(arg) != 1:
             await ctx.channel.send('usage: $remove_word <fei zhi yu>')
             return
         arg = convert(arg.lower(), 'zh-hant')
@@ -85,7 +85,7 @@ class Reaction(commands.Cog):
     @commands.command()
     @commands.has_role(SETTINGS['maintainer_name'])
     async def remove_taiwan_word(self, ctx, arg=None):
-        if arg == None or len(arg) != 1:
+        if not arg or len(arg) != 1:
             await ctx.channel.send('usage: $remove_taiwan_word <fei tai wen>')
             return
         arg = convert(arg.lower(), 'zh-hant')
@@ -101,7 +101,7 @@ class Reaction(commands.Cog):
 
     @commands.command()
     async def add_word(self, ctx, arg = None):
-        if arg == None or len(arg) != 1:
+        if not arg or len(arg) != 1:
             await ctx.channel.send('usage: $add_word <zhi yu>')
             return
         arg = convert(arg.lower(), 'zh-hant')
@@ -114,7 +114,7 @@ class Reaction(commands.Cog):
 
     @commands.command()
     async def tag_word(self, ctx, *arg):
-        if arg == None or len(arg) != 2:
+        if not arg or len(arg) != 2:
             await ctx.channel.send('usage: $add_word <zhi yu> <tai wen>')
             return
         arg_0 = convert(arg[0].lower(), 'zh-hant')
