@@ -2,49 +2,47 @@ from discord.ext import commands
 import discord
 import json
 import os
+import logging
 
-__location__ = os.path.realpath(
-    os.path.join(os.getcwd(), os.path.dirname(__file__)))
+__location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
 
-with open(os.path.join(__location__, 'config.json'),'r',encoding="utf8") as jfile:
-    jdata = json.load(jfile)
+class PoliceBot(commands.Bot):
 
-bot = commands.Bot(command_prefix=jdata['prefix'], help_command=None)
+    def __init__(self, log_mode='debug', log_file=False, filename='discord.log', *args, **kargs):
+        super().__init__(*args, **kargs)
+        self.logger = logging.getLogger('china_police')
+        if log_mode == 'debug':
+            self.logger.setLevel(logging.DEBUG)
+        else:
+            self.logger.setLevel(logging.INFO)
+        if log_file:
+            handler = logging.FileHandler(filename=filename, encoding='utf-8', mode='w')
+            handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
+            self.logger.addHandler(handler)
+        self._was_ready_once = False
 
-@bot.event
-async def on_ready():
-    print('{0.user}起床囉'.format(bot))
-    await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening, name="支語殺"))
-    
-    print('Servers connected to:')
-    for guild in bot.guilds:
-        print(guild.name)
+    async def on_ready(self):
+        self.logger.info('{0.user}???'.format(self))
+        self.logger.info('Servers connected to:')
+        for guild in self.guilds:
+            self.logger.info(guild.name)
+        if not self._was_ready_once:
+            await self.on_first_ready()
+            self._was_ready_once = True
 
-@bot.command(pass_context = True)
-@commands.is_owner()
-async def load(ctx, ext):
-    await ctx.send(f'{ext} loaded')
-    await bot.load_extension(f'cogs.{ext}')
+    async def on_first_ready(self):
+        for filename in os.listdir(os.path.join(__location__, 'cogs')):
+            if filename.endswith('.py'):
+                self.load_extension(f'cogs.{filename[:-3]}')
+        await self.change_presence(activity=discord.Activity(type=discord.ActivityType.listening, name="???"))
 
-@bot.command()
-@commands.is_owner()
-async def unload(ctx, ext):
-    await ctx.send(f'{ext} unloaded')
-    await bot.unload_extension(f'cogs.{ext}')
-
-@bot.command()
-@commands.is_owner()
-async def reload(ctx, ext):
-    await ctx.send(f'{ext} reloaded')
-    await bot.reload_extension(f'cogs.{ext}') 
-
-for filename in os.listdir(os.path.join(__location__, 'cogs')):
-    if filename.endswith('.py'):
-        bot.load_extension(f'cogs.{filename[:-3]}')
-
-try:
-    bot.run(jdata['token'])
-finally:
-    with open(os.path.join(__location__, 'cogs', 'chinaword.txt'), 'w', encoding='utf-8') as f:
-        f.write('\n'.join(bot.china_word))
-        f.write('\n')
+if __name__ == '__main__':
+    with open(os.path.join(__location__, 'config.json'),'r',encoding="utf8") as jfile:
+        jdata = json.load(jfile)
+    bot = PoliceBot(command_prefix=jdata['prefix'], help_command=None)
+    try:
+        bot.run(jdata['token'])
+    finally:
+        with open(os.path.join(__location__, 'cogs', 'chinaword.txt'), 'w', encoding='utf-8') as f:
+            f.write('\n'.join(bot.china_word))
+            f.write('\n')
