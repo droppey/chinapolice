@@ -1,0 +1,4 @@
+discord==1.7.3
+discord.py==1.7.3
+zhconv==1.4.2
+jieba==0.42.1
