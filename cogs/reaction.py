@@ -72,7 +72,7 @@ class Reaction(commands.Cog):
             await ctx.channel.send('usage: $remove_word <fei zhi yu>')
             return
         arg = convert(arg.lower(), 'zh-hant')
-        if arg not in self.bot.china_word:
+        if not arg in self.bot.china_word:
             await ctx.channel.send('親 這個詞沒被誤認成支語啊 您佬再檢查一下唄')
             return
         self.bot.china_word.remove(arg)
@@ -89,7 +89,7 @@ class Reaction(commands.Cog):
             await ctx.channel.send('usage: $remove_taiwan_word <fei tai wen>')
             return
         arg = convert(arg.lower(), 'zh-hant')
-        if arg not in self.bot.taiwan_word:
+        if not arg in self.bot.taiwan_word:
             await ctx.channel.send('同志 這個詞彙並不在我台文詞庫中')
             return
         for c, t in self.bot.c2t.items():
@@ -119,11 +119,11 @@ class Reaction(commands.Cog):
             return
         arg_0 = convert(arg[0].lower(), 'zh-hant')
         arg_1 = convert(arg[1].lower(), 'zh-hant')
-        if arg_0 not in self.bot.china_word:
+        if not arg_0 in self.bot.china_word:
             await ctx.channel.send('親 這個支語沒有被收錄呀 別瞎猜哎')
             return
         self.bot.c2t[arg_0] = arg_1
-        if arg_1 not in self.bot.taiwan_word:
+        if not arg_1 in self.bot.taiwan_word:
             self.bot.taiwan_word.append(arg_1)
             jieba.add_word(arg_1)
         await ctx.channel.send('親 已經為您更新支語數據庫啦哈')
