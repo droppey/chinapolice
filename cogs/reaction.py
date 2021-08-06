@@ -76,8 +76,9 @@ class Reaction(commands.Cog):
             await ctx.channel.send('親 這個詞沒被誤認成支語啊 您佬再檢查一下唄')
             return
         self.bot.china_word.remove(arg)
-        self.bot.taiwan_word.remove(self.bot.c2t[arg])
-        self.bot.c2t.pop(arg, None)
+        if arg in self.bot.c2t:
+            self.bot.taiwan_word.remove(self.bot.c2t[arg])
+            self.bot.c2t.pop(arg, None)
         await ctx.channel.send('親 已經為您更新支語數據庫啦哈 謝謝了哎')
         jieba.del_word(arg)
 
