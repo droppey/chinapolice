@@ -41,6 +41,12 @@ class PoliceBot(commands.Bot):
                 self.logger.info('載入 {} 模組'.format(filename[:-3]))
                 self.load_extension(f'cogs.{filename[:-3]}')
         await self.change_presence(activity=discord.Activity(type=discord.ActivityType.listening, name="支語殺"))
+        try:
+            version = subprocess.check_output(["git", "describe", "--always"]).strip().decode("utf-8")
+            branch_name = subprocess.check_output(["git", "branch", "--show-current"]).strip().decode("utf-8")
+            await self.bot.ch.send(embed=info('{}終於姍姍來遲了，分支版本{}，版本號{}，點擊關注鍵盤三連刷起來'.format(self.user, branch_name, version)))
+        except Exception as e:
+            logger.info("Git image version not found", e)
 
 if __name__ == '__main__':
     with open(os.path.join(__location__, 'config.json'),'r',encoding="utf8") as jfile:
@@ -53,3 +59,8 @@ if __name__ == '__main__':
             with open(os.path.join(__location__, 'cogs', 'chinaword.txt'), 'w', encoding='utf-8') as f:
                 f.write('\n'.join(bot.china_word))
                 f.write('\n')
+            with open(os.path.join(__location__, 'cogs', 'taiwanword.txt'), 'w', encoding='utf-8') as f:
+                f.write('\n'.join(bot.taiwan_word))
+                f.write('\n')
+            with open(os.path.join(__location__, 'cogs', 'mapping.txt'), 'w', encoding='utf-8') as f:
+                json.dump(bot.c2t)
