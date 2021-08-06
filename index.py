@@ -5,6 +5,7 @@ import discord
 import json
 import os
 import logging
+from keep_alive import keep_alive
 
 __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
 
@@ -54,9 +55,10 @@ class PoliceBot(commands.Bot):
 if __name__ == '__main__':
     with open(os.path.join(__location__, 'config.json'),'r',encoding="utf8") as jfile:
         jdata = json.load(jfile)
-    bot = PoliceBot(command_prefix=jdata['prefix'], help_command=None)
+    bot = PoliceBot(command_prefix=os.environ['prefix'], help_command=None)
     try:
-        bot.run(jdata['token'])
+        keep_alive()
+        bot.run(os.environ['token'])
     finally:
         if bot.china_word:
             with open(os.path.join(__location__, 'cogs', 'chinaword.txt'), 'w', encoding='utf-8') as f:

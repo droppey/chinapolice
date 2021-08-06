@@ -115,7 +115,7 @@ class Reaction(commands.Cog):
     @commands.command()
     async def tag_word(self, ctx, *arg):
         if not arg or len(arg) != 2:
-            await ctx.channel.send('usage: $add_word <zhi yu> <tai wen>')
+            await ctx.channel.send('usage: $tag_word <zhi yu> <tai wen>')
             return
         arg_0 = convert(arg[0].lower(), 'zh-hant')
         arg_1 = convert(arg[1].lower(), 'zh-hant')
