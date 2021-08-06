@@ -115,3 +115,4 @@ dmypy.json
 
 config.json
 config.json
+*.log
