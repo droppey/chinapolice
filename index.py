@@ -17,12 +17,17 @@ class PoliceBot(commands.Bot):
             self.logger.setLevel(logging.INFO)
         if log_file:
             handler = logging.FileHandler(filename=filename, encoding='utf-8', mode='w')
-            handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
-            self.logger.addHandler(handler)
+            handler.setLevel(logging.DEBUG)
+        else:
+            handler = logging.StreamHandler()
+            handler.setLevel(logging.DEBUG)
+
+        handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
+        self.logger.addHandler(handler)
         self._was_ready_once = False
 
     async def on_ready(self):
-        self.logger.info('{0.user}???'.format(self))
+        self.logger.info('{0.user}起床囉'.format(self))
         self.logger.info('Servers connected to:')
         for guild in self.guilds:
             self.logger.info(guild.name)
@@ -33,8 +38,9 @@ class PoliceBot(commands.Bot):
     async def on_first_ready(self):
         for filename in os.listdir(os.path.join(__location__, 'cogs')):
             if filename.endswith('.py'):
+                self.logger.info('載入 {} 模組'.format(filename[:-3]))
                 self.load_extension(f'cogs.{filename[:-3]}')
-        await self.change_presence(activity=discord.Activity(type=discord.ActivityType.listening, name="???"))
+        await self.change_presence(activity=discord.Activity(type=discord.ActivityType.listening, name="支語殺"))
 
 if __name__ == '__main__':
     with open(os.path.join(__location__, 'config.json'),'r',encoding="utf8") as jfile:
