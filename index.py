@@ -50,6 +50,6 @@ if __name__ == '__main__':
         bot.run(jdata['token'])
     finally:
         if bot.china_word:
-          with open(os.path.join(__location__, 'cogs', 'chinaword.txt'), 'w', encoding='utf-8') as f:
-              f.write('\n'.join(bot.china_word))
-              f.write('\n')
+            with open(os.path.join(__location__, 'cogs', 'chinaword.txt'), 'w', encoding='utf-8') as f:
+                f.write('\n'.join(bot.china_word))
+                f.write('\n')
