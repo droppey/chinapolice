@@ -23,7 +23,7 @@ class Reaction(commands.Cog):
             self.bot.china_word = [line[:-1] for line in f]
         with open(os.path.join(__location__, 'taiwanword.txt'), 'r', encoding='utf-8') as f:
             self.bot.taiwan_word = [line[:-1] for line in f]
-        with open(os.path.join(__location__, 'mapping.txt'), 'r', encoding='utf-8') as f:
+        with open(os.path.join(__location__, 'mapping.json'), 'r', encoding='utf-8') as f:
             self.bot.c2t = json.load(f)
         jieba.load_userdict(os.path.join(__location__, 'chinaword.txt'))
         jieba.load_userdict(os.path.join(__location__, 'taiwanword.txt'))
@@ -37,14 +37,14 @@ class Reaction(commands.Cog):
         if 'https://' in messageContent or 'http://' in messageContent:
             return
         converted_message = convert(messageContent.lower(), 'zh-hant')
-        seg_list = jieba.cut(converted_message)
+        seg_list = jieba.lcut(converted_message)
 
         for seg in seg_list:
             if seg in self.bot.china_word:
                 if msg.author.bot:
                     return
                 if seg in self.bot.c2t:
-                    _tlist = jieba.cut(converted_message.replace(seg, self.bot.c2t[seg]))
+                    _tlist = jieba.lcut(converted_message.replace(seg, self.bot.c2t[seg]))
                     if len(_tlist) != len(seg_list):
                         continue
                 await msg.add_reaction(SETTINGS['emoji'])
@@ -52,6 +52,8 @@ class Reaction(commands.Cog):
                 await self.bot.ch.send(f'<@{author}> 支語，滾！')
                 mesg = random.choice(SETTINGS['reaction_image'])
                 await self.bot.ch.send(mesg)
+                if seg in self.bot.c2t:
+                  await self.bot.ch.send('同志好，您應該要說{}'.format(self.bot.c2t[seg]))
                 return
 
     @commands.command()
@@ -66,7 +68,7 @@ class Reaction(commands.Cog):
     @commands.command()
     @commands.has_role(SETTINGS['maintainer_name'])
     async def remove_word(self, ctx, arg=None):
-        if not arg:
+        if not arg and len(arg) != 1:
             await ctx.channel.send('usage: $remove_word <fei zhi yu>')
             return
         arg = convert(arg.lower(), 'zh-hant')
@@ -75,13 +77,30 @@ class Reaction(commands.Cog):
             return
         self.bot.china_word.remove(arg)
         self.bot.taiwan_word.remove(self.bot.c2t[arg])
-        del self.bot.c2t[arg]
+        self.bot.c2t.pop(arg, None)
         await ctx.channel.send('親 已經為您更新支語數據庫啦哈 謝謝了哎')
         jieba.del_word(arg)
 
     @commands.command()
+    @commands.has_role(SETTINGS['maintainer_name'])
+    async def remove_taiwan_word(self, ctx, arg=None):
+        if not arg and len(arg) != 1:
+            await ctx.channel.send('usage: $remove_taiwan_word <fei tai wen>')
+            return
+        arg = convert(arg.lower(), 'zh-hant')
+        if arg not in self.bot.taiwan_word:
+            await ctx.channel.send('同志 這個詞彙並不在我台文詞庫中')
+            return
+        for c, t in self.bot.c2t.items():
+            if t == arg:
+              self.bot.c2t.pop(c, None)
+        self.bot.taiwan_word.remove(arg)
+        await ctx.channel.send('同志 謝謝你')
+        jieba.del_word(arg)
+
+    @commands.command()
     async def add_word(self, ctx, arg = None):
-        if not arg:
+        if not arg and len(arg) != 1:
             await ctx.channel.send('usage: $add_word <zhi yu>')
             return
         arg = convert(arg.lower(), 'zh-hant')
@@ -93,19 +112,19 @@ class Reaction(commands.Cog):
         jieba.add_word(arg)
 
     @commands.command()
-    async def update_word(self, ctx, *arg):
+    async def tag_word(self, ctx, *arg):
         if not arg or len(arg) != 2:
             await ctx.channel.send('usage: $add_word <zhi yu> <tai wen>')
             return
-        arg[0] = convert(arg[0].lower(), 'zh-hant')
-        arg[1] = convert(arg[1].lower(), 'zh-hant')
-        if arg not in self.bot.china_word:
+        arg_0 = convert(arg[0].lower(), 'zh-hant')
+        arg_1 = convert(arg[1].lower(), 'zh-hant')
+        if arg_0 not in self.bot.china_word:
             await ctx.channel.send('親 這個支語沒有被收錄呀 別瞎猜哎')
             return
-        self.bot.c2t[arg[0]] = arg[1]
-        if arg[1] not in self.bot.taiwan_word:
-            self.bot.taiwan_word.append(arg[1])
-            jieba.add_word(arg[1])
+        self.bot.c2t[arg_0] = arg_1
+        if arg_1 not in self.bot.taiwan_word:
+            self.bot.taiwan_word.append(arg_1)
+            jieba.add_word(arg_1)
         await ctx.channel.send('親 已經為您更新支語數據庫啦哈')
 
 def setup(bot):
