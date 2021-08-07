@@ -27,6 +27,10 @@ class Reaction(commands.Cog):
             self.bot.c2t = json.load(f)
         jieba.load_userdict(os.path.join(__location__, 'chinaword.txt'))
         jieba.load_userdict(os.path.join(__location__, 'taiwanword.txt'))
+        for word in self.bot.china_word:
+            if word.isnumeric():
+                jieba.del_word(word)
+
 
     @commands.Cog.listener()
     async def on_message(self, msg):
@@ -38,7 +42,6 @@ class Reaction(commands.Cog):
             return
         converted_message = convert(messageContent.lower(), 'zh-hant')
         seg_list = jieba.lcut(converted_message)
-
         for seg in seg_list:
             if seg in self.bot.china_word:
                 if msg.author.bot:
@@ -125,7 +128,8 @@ class Reaction(commands.Cog):
         self.bot.c2t[arg_0] = arg_1
         if not arg_1 in self.bot.taiwan_word:
             self.bot.taiwan_word.append(arg_1)
-            jieba.add_word(arg_1)
+            if not arg_1.isnumeric():
+                jieba.add_word(arg_1)
         await ctx.channel.send('親 已經為您更新支語數據庫啦哈')
 
 def setup(bot):
