@@ -124,7 +124,7 @@ class Reaction(commands.Cog):
         arg_1 = convert(arg[1].lower(), 'zh-hant')
         if not arg_0 in self.bot.china_word:
             await ctx.channel.send('親 這個支語沒有被收錄呀 別瞎猜哎')
-            returnf
+            return
         self.bot.c2t[arg_0] = arg_1
         if not arg_1 in self.bot.taiwan_word:
             self.bot.taiwan_word.append(arg_1)
