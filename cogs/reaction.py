@@ -48,7 +48,9 @@ class Reaction(commands.Cog):
                     return
                 if seg in self.bot.c2t:
                     _tlist = list(jieba.tokenize(converted_message.replace(seg, self.bot.c2t[seg])))
-                    if _tlist[i][1] != start or _tlist[i][2] != end:
+                    if len(_tlist) != len(seg_list) + len(jieba.lcut(self.bot.c2t[seg])) -1:
+                        continue
+                    if _tlist[i][1] != start:
                         continue
                 await msg.add_reaction(SETTINGS['emoji'])
                 await self.bot.ch.send('支語，滾！')
