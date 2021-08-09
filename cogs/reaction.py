@@ -99,6 +99,7 @@ class Reaction(commands.Cog):
         for c, t in self.bot.c2t.items():
             if t == arg:
               self.bot.c2t.pop(c, None)
+              break
         self.bot.taiwan_word.remove(arg)
         await ctx.channel.send('同志 謝謝你')
         jieba.del_word(arg)
