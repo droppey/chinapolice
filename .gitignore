@@ -116,7 +116,6 @@ dmypy.json
 config.json
 *.log
 .replit
-keep_alive.py
 pyproject.toml
 poetry.lock
 index.py
