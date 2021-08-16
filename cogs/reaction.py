@@ -13,12 +13,21 @@ __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file
 with open(os.path.join(__location__, 'reaction_setting.json'), 'r', encoding='utf-8') as setting_file:
     SETTINGS = json.load(setting_file)
 
-class Reaction(commands.Cog):
 
+def guild_compare():
+    async def guild_filter(ctx):
+        return str(ctx.guild.id) == SETTINGS['guild']
+    return commands.check(guild_filter)
+
+class Reaction(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         random.seed(int(time.time()))
-        self.bot.ch = self.bot.get_channel(int(SETTINGS['id']))
+        with open(os.path.join(__location__, 'server_mapping.json'), 'r', encoding='utf-8') as f:
+            self.bot.svr_mapping = json.load(f)
+            for guild, mapping in self.bot.svr_mapping.items():
+                self.bot.guilds_dict[guild]['ch'] = self.bot.get_channel(int(mapping['cid']))
+                self.bot.guilds_dict[guild]['emoji'] = mapping['emoji']
         jieba.enable_parallel(4)
         with open(os.path.join(__location__, 'chinaword.txt'), 'r', encoding='utf-8') as f:
             self.bot.china_word = [line[:-1] for line in f]
@@ -28,13 +37,14 @@ class Reaction(commands.Cog):
             self.bot.c2t = json.load(f)
         jieba.load_userdict(os.path.join(__location__, 'chinaword.txt'))
         for word in self.bot.china_word:
-            if word.isnumeric():
+            if word.isnumeric() or word.isascii():
                 jieba.del_word(word)
 
 
     @commands.Cog.listener()
     async def on_message(self, msg):
         ctx = await self.bot.get_context(msg)
+        guild_id = ctx.guild.id
         if ctx.valid :
             return
         messageContent = msg.content
@@ -52,25 +62,38 @@ class Reaction(commands.Cog):
                         continue
                     if _tlist[i][1] != start:
                         continue
-                await msg.add_reaction(SETTINGS['emoji'])
-                await self.bot.ch.send('支語，滾！')
+                await msg.add_reaction(self.bot.guilds_dict[str(guild_id)]['emoji'])
+                await self.bot.guilds_dict[str(guild_id)]['ch'].send('支語，滾！')
                 mesg = random.choice(SETTINGS['reaction_image'])
-                await self.bot.ch.send(mesg)
+                await self.bot.guilds_dict[str(guild_id)]['ch'].send(mesg)
                 if seg in self.bot.c2t:
-                    await self.bot.ch.send('同志好，您應該要說{}'.format(self.bot.c2t[seg]))
+                    await self.bot.guilds_dict[str(guild_id)]['ch'].send('同志好，您應該要說{}'.format(self.bot.c2t[seg]))
                 return
 
     @commands.command()
-    @commands.has_role(SETTINGS['maintainer_name'])
-    async def bind_channel(self, ctx, arg):
+    @commands.has_permissions(manage_roles=True)
+    async def edit_reaction(self, ctx, *arg):
+        if not arg or len(arg) != 1:
+            await ctx.channel.send('usage: $edit_reaction <emoji_serial>')
+            return
+        arg = arg[0]
+        self.bot.guilds_dict[str(ctx.guild.id)]['emoji'] = arg
+        self.bot.svr_mapping[str(ctx.guild.id)]['emoji'] = arg
+        await ctx.channel.send('修改reaction成功')
+
+    @commands.command()
+    @commands.has_permissions(manage_roles=True)
+    async def bind_channel(self, ctx, *arg):
         if arg:
             await ctx.channel.send('usage: $bind_channel')
             return
-        self.bot.ch = ctx.channel
+        self.bot.guilds_dict[str(ctx.guild.id)]['ch'] = ctx.channel
+        self.bot.svr_mapping[str(ctx.guild.id)]['cid'] = ctx.channel.id
         await ctx.channel.send('綁定成功')
 
+    @guild_compare()
     @commands.command()
-    @commands.has_role(SETTINGS['maintainer_name'])
+    @commands.has_permissions(manage_roles=True)
     async def remove_word(self, ctx, *arg):
         if not arg or len(arg) != 1:
             await ctx.channel.send('usage: $remove_word <fei zhi yu>')
@@ -88,7 +111,8 @@ class Reaction(commands.Cog):
         jieba.del_word(arg)
 
     @commands.command()
-    @commands.has_role(SETTINGS['maintainer_name'])
+    @commands.has_permissions(manage_roles=True)
+    @guild_compare()
     async def remove_taiwan_word(self, ctx, *arg):
         if not arg or len(arg) != 1:
             await ctx.channel.send('usage: $remove_taiwan_word <fei tai wen>')
@@ -106,6 +130,7 @@ class Reaction(commands.Cog):
         await ctx.channel.send('同志 謝謝你')
         jieba.del_word(arg)
 
+    @guild_compare()
     @commands.command()
     async def add_word(self, ctx, *args):
         if not args:
@@ -126,10 +151,12 @@ class Reaction(commands.Cog):
                 continue
             appended = True
             self.bot.china_word.append(arg)
-            jieba.add_word(arg)
+            if not arg.isascii():
+                jieba.add_word(arg)
         if appended:
             await ctx.channel.send('親 已經為您更新支語數據庫啦哈')
 
+    @guild_compare()
     @commands.command()
     async def tag_word(self, ctx, *args):
         if not args or len(args) != 2:

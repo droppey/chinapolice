@@ -5,13 +5,12 @@ import discord
 import json
 import os
 import logging
-from keep_alive import keep_alive
 
 __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
 
 class PoliceBot(commands.Bot):
 
-    def __init__(self, log_mode='debug', log_file=False, filename='discord.log', *args, **kargs):
+    def __init__(self, log_mode='debug', log_file=False, filename='discord.log', db='cnpolice.db', *args, **kargs):
         super().__init__(*args, **kargs)
         self.logger = logging.getLogger('china_police')
         if log_mode == 'debug':
@@ -28,12 +27,17 @@ class PoliceBot(commands.Bot):
         handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
         self.logger.addHandler(handler)
         self._was_ready_once = False
+        self.guilds_dict = {}
 
     async def on_ready(self):
         self.logger.info('{0.user}起床囉'.format(self))
         self.logger.info('Servers connected to:')
         for guild in self.guilds:
             self.logger.info(guild.name)
+            self.guilds_dict[str(guild.id)] = {
+                'channel': '',
+                'reaction': ''
+            }
         if not self._was_ready_once:
             await self.on_first_ready()
             self._was_ready_once = True
@@ -47,18 +51,18 @@ class PoliceBot(commands.Bot):
         try:
             version = subprocess.check_output(["git", "describe", "--always"]).strip().decode("utf-8")
             branch_name = subprocess.check_output(["git", "rev-parse", "--abbrev-ref", "HEAD"]).strip().decode("utf-8")
-            await self.ch.send(embed=Embed(title='{}終於姍姍來遲了 小伙初來小區報到'.format(self.user),
-                description='分支版本{}，版本號{}，點擊關注鍵盤三連刷起來'.format(branch_name, version)))
+            for guild in self.guilds_dict.values():
+                await guild['ch'].send(embed=Embed(title='{}終於姍姍來遲了 小伙初來小區報到'.format(self.user),
+                    description='分支版本{}，版本號{}，點擊關注鍵盤三連刷起來'.format(branch_name, version)))
         except Exception as e:
             self.logger.info("Git image version not found", e)
 
 if __name__ == '__main__':
     with open(os.path.join(__location__, 'config.json'),'r',encoding="utf8") as jfile:
         jdata = json.load(jfile)
-    bot = PoliceBot(command_prefix=os.environ['prefix'], help_command=None)
+    bot = PoliceBot(command_prefix=jdata['prefix'], help_command=None)
     try:
-        keep_alive()
-        bot.run(os.environ['token'])
+        bot.run(jdata['token'])
     finally:
         if bot.china_word:
             with open(os.path.join(__location__, 'cogs', 'chinaword.txt'), 'w', encoding='utf-8') as f:
@@ -71,3 +75,6 @@ if __name__ == '__main__':
         if bot.c2t:
             with open(os.path.join(__location__, 'cogs', 'mapping.json'), 'w', encoding='utf-8') as f:
                 json.dump(bot.c2t, f)
+        if bot.svr_mapping:
+            with open(os.path.join(__location__, 'cogs', 'server_mapping.json'), 'w', encoding='utf-8') as f:
+                json.dump(bot.svr_mapping, f)
