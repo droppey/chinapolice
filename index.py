@@ -27,17 +27,12 @@ class PoliceBot(commands.Bot):
         handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s'))
         self.logger.addHandler(handler)
         self._was_ready_once = False
-        self.guilds_dict = {}
 
     async def on_ready(self):
         self.logger.info('{0.user}起床囉'.format(self))
         self.logger.info('Servers connected to:')
         for guild in self.guilds:
             self.logger.info(guild.name)
-            self.guilds_dict[str(guild.id)] = {
-                'channel': '',
-                'reaction': ''
-            }
         if not self._was_ready_once:
             await self.on_first_ready()
             self._was_ready_once = True
@@ -51,9 +46,12 @@ class PoliceBot(commands.Bot):
         try:
             version = subprocess.check_output(["git", "describe", "--always"]).strip().decode("utf-8")
             branch_name = subprocess.check_output(["git", "rev-parse", "--abbrev-ref", "HEAD"]).strip().decode("utf-8")
-            for guild in self.guilds_dict.values():
-                await guild['ch'].send(embed=Embed(title='{}終於姍姍來遲了 小伙初來小區報到'.format(self.user),
-                    description='分支版本{}，版本號{}，點擊關注鍵盤三連刷起來'.format(branch_name, version)))
+            for guild, guild_item in self.guilds_dict.items():
+                try:
+                    await guild_item['ch'].send(embed=Embed(title='{}終於姍姍來遲了 小伙初來小區報到'.format(self.user),
+                        description='分支版本{}，版本號{}，點擊關注鍵盤三連刷起來'.format(branch_name, version)))
+                except AttributeError:
+                    self.logger.info('伺服器{} 沒有綁定頻道'.format(guild))
         except Exception as e:
             self.logger.info("Git image version not found", e)
 

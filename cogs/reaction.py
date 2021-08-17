@@ -23,11 +23,17 @@ class Reaction(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         random.seed(int(time.time()))
+        self.bot.guilds_dict = {}
+        for guild in self.bot.guilds:
+            self.bot.guilds_dict[str(guild.id)] = {'ch': '', 'emoji': ''}
         with open(os.path.join(__location__, 'server_mapping.json'), 'r', encoding='utf-8') as f:
             self.bot.svr_mapping = json.load(f)
             for guild, mapping in self.bot.svr_mapping.items():
                 self.bot.guilds_dict[guild]['ch'] = self.bot.get_channel(int(mapping['cid']))
                 self.bot.guilds_dict[guild]['emoji'] = mapping['emoji']
+        for guild in self.bot.guilds:
+            if not str(guild.id) in self.bot.svr_mapping:
+                self.bot.svr_mapping[str(guild.id)] = {'cid': '', 'emoji': ''}
         jieba.enable_parallel(4)
         with open(os.path.join(__location__, 'chinaword.txt'), 'r', encoding='utf-8') as f:
             self.bot.china_word = [line[:-1] for line in f]
@@ -87,8 +93,10 @@ class Reaction(commands.Cog):
         if arg:
             await ctx.channel.send('usage: $bind_channel')
             return
+        print(ctx)
+        print(ctx.channel.id)
         self.bot.guilds_dict[str(ctx.guild.id)]['ch'] = ctx.channel
-        self.bot.svr_mapping[str(ctx.guild.id)]['cid'] = ctx.channel.id
+        self.bot.svr_mapping[str(ctx.guild.id)]['cid'] = str(ctx.channel.id)
         await ctx.channel.send('綁定成功')
 
     @guild_compare()
