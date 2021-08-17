@@ -27,10 +27,12 @@ class Reaction(commands.Cog):
         for guild in self.bot.guilds:
             self.bot.guilds_dict[str(guild.id)] = {'ch': '', 'emoji': ''}
         with open(os.path.join(__location__, 'server_mapping.json'), 'r', encoding='utf-8') as f:
-            self.bot.svr_mapping = json.load(f)
-            for guild, mapping in self.bot.svr_mapping.items():
-                self.bot.guilds_dict[guild]['ch'] = self.bot.get_channel(int(mapping['cid']))
-                self.bot.guilds_dict[guild]['emoji'] = mapping['emoji']
+            svr_mapping = json.load(f)
+            for guild_id, mapping in svr_mapping.items():
+                if guild_id in self.bot.guilds_dict:
+                    self.bot.guilds_dict[guild_id]['ch'] = self.bot.get_channel(int(mapping['cid'])) if mapping['cid'].isnumeric() else None
+                    self.bot.guilds_dict[guild_id]['emoji'] = mapping['emoji']
+            self.bot.svr_mapping = {guild_id:svr_mapping[guild_id] for guild_id in svr_mapping.keys() if guild_id in self.bot.guilds_dict}
         for guild in self.bot.guilds:
             if not str(guild.id) in self.bot.svr_mapping:
                 self.bot.svr_mapping[str(guild.id)] = {'cid': '', 'emoji': ''}
@@ -46,6 +48,20 @@ class Reaction(commands.Cog):
             if word.isnumeric() or word.isascii():
                 jieba.del_word(word)
 
+
+    @commands.Cog.listener()
+    async def on_guild_join(self, guild):
+        self.bot.svr_mapping[str(guild.id)] = {'cid': '', 'emoji': ''}
+        self.bot.guilds_dict[str(guild.id)] = {'ch': '', 'emoji': ''}
+        if guild.system_channel and guild.system_channel.permissions_for(guild.me).send_messages:
+            await guild.system_channel.send('00后小區小伙{}報到，提醒您先使用`-bind_reaction <表情符號>`綁定emoji反應，還可以使用`-bind_channel`綁定頻道'.format(self.bot.user))
+        self.bot.logger.info(f'伺服器 {guild.name} 加入')
+
+    @commands.Cog.listener()
+    async def on_guild_remove(self, guild):
+        del self.bot.svr_mapping[str(guild.id)]
+        del self.bot.guilds_dict[str(guild.id)]
+        self.bot.logger.info(f'伺服器 {guild.name} 退出')
 
     @commands.Cog.listener()
     async def on_message(self, msg):
@@ -78,14 +94,14 @@ class Reaction(commands.Cog):
 
     @commands.command()
     @commands.has_permissions(manage_roles=True)
-    async def edit_reaction(self, ctx, *arg):
+    async def bind_reaction(self, ctx, *arg):
         if not arg or len(arg) != 1:
-            await ctx.channel.send('usage: $edit_reaction <emoji_serial>')
+            await ctx.channel.send('usage example: $bind_reaction 👍')
             return
         arg = arg[0]
         self.bot.guilds_dict[str(ctx.guild.id)]['emoji'] = arg
         self.bot.svr_mapping[str(ctx.guild.id)]['emoji'] = arg
-        await ctx.channel.send('修改reaction成功')
+        await ctx.channel.send('綁定emoji反應成功')
 
     @commands.command()
     @commands.has_permissions(manage_roles=True)
@@ -93,8 +109,6 @@ class Reaction(commands.Cog):
         if arg:
             await ctx.channel.send('usage: $bind_channel')
             return
-        print(ctx)
-        print(ctx.channel.id)
         self.bot.guilds_dict[str(ctx.guild.id)]['ch'] = ctx.channel
         self.bot.svr_mapping[str(ctx.guild.id)]['cid'] = str(ctx.channel.id)
         await ctx.channel.send('綁定成功')
