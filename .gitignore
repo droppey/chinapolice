@@ -120,3 +120,5 @@ pyproject.toml
 poetry.lock
 index.py
 dict.*
+*.json
+*.txt
