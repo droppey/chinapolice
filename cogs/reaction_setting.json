@@ -1,5 +1,4 @@
 {
-    "id": 872475083640283207,
     "reaction_image": [
         "https://cdn.discordapp.com/attachments/870138830949322783/872335866331295744/LmVdMYT.jpg",
         "https://cdn.discordapp.com/attachments/870138830949322783/872335866662649876/C_Chat.M.1595128807.A.E19.jpg",
@@ -9,5 +8,6 @@
         "https://cdn.discordapp.com/attachments/870138830949322783/872335874396938290/Ja8PdF5.png",
         "https://cdn.discordapp.com/attachments/870138830949322783/872335874971553828/7mLrCNah.jpg"
     ],
-    "guild": "813423031539204126"
+    "guild": "813423031539204126",
+    "self_dictionary": "dict.txt.big.txt"
 }

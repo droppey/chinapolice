@@ -24,6 +24,9 @@ class Reaction(commands.Cog):
         self.bot = bot
         random.seed(int(time.time()))
         self.bot.guilds_dict = {}
+        if os.path.exists(os.path.join(__location__, SETTINGS['self_dictionary'])):
+            jieba.initialize()
+            jieba.set_dictionary(os.path.join(__location__, SETTINGS['self_dictionary']))
         for guild in self.bot.guilds:
             self.bot.guilds_dict[str(guild.id)] = {'ch': '', 'emoji': ''}
         with open(os.path.join(__location__, 'server_mapping.json'), 'r', encoding='utf-8') as f:
@@ -84,12 +87,15 @@ class Reaction(commands.Cog):
                         continue
                     if _tlist[i][1] != start:
                         continue
-                await msg.add_reaction(self.bot.guilds_dict[str(guild_id)]['emoji'])
-                await self.bot.guilds_dict[str(guild_id)]['ch'].send('支語，滾！')
-                mesg = random.choice(SETTINGS['reaction_image'])
-                await self.bot.guilds_dict[str(guild_id)]['ch'].send(mesg)
-                if seg in self.bot.c2t:
-                    await self.bot.guilds_dict[str(guild_id)]['ch'].send('同志好，您應該要說{}'.format(self.bot.c2t[seg]))
+                try:
+                    await msg.add_reaction(self.bot.guilds_dict[str(guild_id)]['emoji'])
+                    await self.bot.guilds_dict[str(guild_id)]['ch'].send('支語，滾！')
+                    mesg = random.choice(SETTINGS['reaction_image'])
+                    await self.bot.guilds_dict[str(guild_id)]['ch'].send(mesg)
+                    if seg in self.bot.c2t:
+                        await self.bot.guilds_dict[str(guild_id)]['ch'].send('同志好，您應該要說{}'.format(self.bot.c2t[seg]))
+                except AttributeError as e:
+                    self.bot.logger.info(f'send message abort possibly due to missing channel or emoji where is {e}')
                 return
 
     @commands.command()
@@ -158,10 +164,6 @@ class Reaction(commands.Cog):
         if not args:
             await ctx.channel.send('usage: $add_word <zhi yu> ...')
             return
-        if len(args) > 1:
-            msg = '親 這個支語已被收錄啦哈'
-        else:
-            msg = '親 其中一個'
         appended = False
         for arg in args:
             arg = convert(arg.lower(), 'zh-hant')
