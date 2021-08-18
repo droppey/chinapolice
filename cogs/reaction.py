@@ -39,7 +39,6 @@ class Reaction(commands.Cog):
         for guild in self.bot.guilds:
             if not str(guild.id) in self.bot.svr_mapping:
                 self.bot.svr_mapping[str(guild.id)] = {'cid': '', 'emoji': ''}
-        jieba.enable_parallel(4)
         with open(os.path.join(__location__, 'chinaword.txt'), 'r', encoding='utf-8') as f:
             self.bot.china_word = [line[:-1] for line in f]
         with open(os.path.join(__location__, 'taiwanword.txt'), 'r', encoding='utf-8') as f:
