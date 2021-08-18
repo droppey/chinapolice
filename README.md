@@ -9,16 +9,42 @@ based off discord.py
 
 ## How to
 
-1. setting up the bot token in config.json
-2. setting up the emoji, reaction pictures and reaction channel in reaction_setting.json
+1. create `config.json` and set up the bot token
 
-3. install python package
+```javascript
+{
+    "prefix" : "~",
+    "token" : "自己創ㄛ"
+}
+```
+
+2. create `cogs/reaction_setting.json` and set up the emoji, reaction pictures and reaction channel
+
+```javascript
+{
+    "reaction_image": [
+    ],
+    "guild": "",
+    "self_dictionary": ""
+}
+```
+
+3. create `cogs/server_mapping.json`, `cogs/mapping.json`, `cogs/taiwanword.txt`, `cogs/chinaword.txt`
+
+```sh
+echo '{}' > ./cogs/server_mapping.json
+echo '{}' > ./cogs/mapping.json
+echo '' > ./cogs/taiwanword.txt
+echo '' > ./cogs/chinaword.txt
+```
+
+4. install python package
 
 ```sh
 $ pip install -r requirements.txt
 ```
 
-4. start the program
+5. start the program
 
 ```sh
 $ python index.py
