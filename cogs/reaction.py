@@ -170,7 +170,6 @@ class Reaction(commands.Cog):
                     nonlocal last_time
                     now_time = time.time()
                     if now_time - last_time > 600:
-                        await ctx.channel.send('投票未達標 不同意')
                         self.remove_listener('remove_word_voting', _inner)
                     if reaction.message.id != msg.id:
                         return
