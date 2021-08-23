@@ -21,6 +21,7 @@ def guild_compare():
 
 class Reaction(commands.Cog):
     def __init__(self, bot):
+        self.listeners = {}
         self.bot = bot
         random.seed(int(time.time()))
         self.bot.guilds_dict = {}
@@ -49,7 +50,38 @@ class Reaction(commands.Cog):
         for word in self.bot.china_word:
             if word.isnumeric() or word.isascii():
                 jieba.del_word(word)
+        self.message_handler = MessageHandler()
+        self.listeners = {}
 
+    def add_listener(self, event, listener):
+        if event not in self.listeners:
+            self.listners[event] = [listner]
+        else:
+            self.listners[event].append(listner)
+
+    def remove_all_listener(self, event):
+        self.listeners[event] = []
+
+    def remove_listener(self, event, listener):
+        if event not in self.listeners:
+            return
+
+        self.listeners[event].remove(listener)
+
+    def _emit(self, event, *args):
+        if event not in self.listeners:
+            return
+
+        for listener in self.listeners[event]:
+            if callable(listener):
+                listener(*args)
+
+    @commands.Cogs.listener
+    async def on_reaction_add(self, reaction, user):
+        try:
+            self._emit('remove_word_voting', reaction)
+        except Exception as ex:
+            self.bot.logger.info(f'remove_word_voting fails due to {ex}')
 
     @commands.Cog.listener()
     async def on_guild_join(self, guild):
@@ -120,7 +152,6 @@ class Reaction(commands.Cog):
 
     @guild_compare()
     @commands.command()
-    @commands.has_permissions(manage_roles=True)
     async def remove_word(self, ctx, *arg):
         if not arg or len(arg) != 1:
             await ctx.channel.send('usage: $remove_word <fei zhi yu>')
@@ -130,12 +161,30 @@ class Reaction(commands.Cog):
         if arg not in self.bot.china_word:
             await ctx.channel.send('親 這個詞沒被誤認成支語啊 您佬再檢查一下唄')
             return
-        self.bot.china_word.remove(arg)
-        if arg in self.bot.c2t:
-            self.bot.taiwan_word.remove(self.bot.c2t[arg])
-            self.bot.c2t.pop(arg, None)
-        await ctx.channel.send('親 已經為您更新支語數據庫啦哈 謝謝了哎')
-        jieba.del_word(arg)
+        if not ctx.message.author.guild_permissions.administrator:
+            msg = await ctx.channel.send(embed=Embed(title='請大家在五分鐘內投票',
+                        description=f'刪除詞彙 {arg} 我話講完 誰贊成誰反對'))
+            await msg.add_reaction('👀')
+            def _remove_word_voting(reaction):
+                if reaction.message.id != msg.id:
+                    return
+                if reaction.count >= 6 and str(reaction.emoji) == '👀':
+                    self.bot.china_word.remove(arg)
+                    if arg in self.bot.c2t:
+                        self.bot.taiwan_word.remove(self.bot.c2t[arg])
+                        self.bot.c2t.pop(arg, None)
+                    await ctx.channel.send('親 已經為您更新支語數據庫啦哈 謝謝了哎')
+                    jieba.del_word(arg)
+
+            self.message_handler.add_listener('remove_word_voting', _remove_word_voting)
+        else:
+            self.bot.china_word.remove(arg)
+            if arg in self.bot.c2t:
+                self.bot.taiwan_word.remove(self.bot.c2t[arg])
+                self.bot.c2t.pop(arg, None)
+            await ctx.channel.send('親 已經為您更新支語數據庫啦哈 謝謝了哎')
+            jieba.del_word(arg)
+
 
     @commands.command()
     @commands.has_permissions(manage_roles=True)
@@ -178,6 +227,7 @@ class Reaction(commands.Cog):
                 jieba.add_word(arg)
         if appended:
             await ctx.channel.send('親 已經為您更新支語數據庫啦哈')
+
 
     @guild_compare()
     @commands.command()
