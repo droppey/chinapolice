@@ -29,6 +29,7 @@ class Reaction(commands.Cog):
         if os.path.exists(os.path.join(__location__, SETTINGS['self_dictionary'])):
             jieba.initialize()
             jieba.set_dictionary(os.path.join(__location__, SETTINGS['self_dictionary']))
+        jieba.enable_parallel(3)
         for guild in self.bot.guilds:
             self.bot.guilds_dict[str(guild.id)] = {'ch': '', 'emoji': ''}
         with open(os.path.join(__location__, 'server_mapping.json'), 'r', encoding='utf-8') as f:
@@ -81,7 +82,8 @@ class Reaction(commands.Cog):
         try:
             await self._emit('remove_word_voting', reaction)
         except Exception as ex:
-            self.bot.logger.info(f'remove_word_voting fails due to {ex}')
+            self.bot.logger.info(f'remove_word_voting fails due to {ex} \n and start to remove listener')
+            self.remove_all_listener('remove_word_voting')
 
     @commands.Cog.listener()
     async def on_guild_join(self, guild):
@@ -118,15 +120,16 @@ class Reaction(commands.Cog):
                         continue
                     if _tlist[i][1] != start:
                         continue
-                try:
-                    await msg.add_reaction(self.bot.guilds_dict[str(guild_id)]['emoji'])
-                    await self.bot.guilds_dict[str(guild_id)]['ch'].send('支語，滾！')
-                    mesg = random.choice(SETTINGS['reaction_image'])
-                    await self.bot.guilds_dict[str(guild_id)]['ch'].send(mesg)
-                    if seg in self.bot.c2t:
-                        await self.bot.guilds_dict[str(guild_id)]['ch'].send('同志好，您應該要說{}'.format(self.bot.c2t[seg]))
-                except AttributeError as e:
-                    self.bot.logger.info(f'send message abort possibly due to missing channel or emoji where is {e}')
+                await msg.add_reaction(self.bot.guilds_dict[str(guild_id)]['emoji'])
+                if 'ch' in self.bot.guilds_dict[str(guild_id)]:
+                    try:
+                        await self.bot.guilds_dict[str(guild_id)]['ch'].send('支語，滾！')
+                        mesg = random.choice(SETTINGS['reaction_image'])
+                        await self.bot.guilds_dict[str(guild_id)]['ch'].send(mesg)
+                        if seg in self.bot.c2t:
+                            await self.bot.guilds_dict[str(guild_id)]['ch'].send('同志好，您應該要說{}'.format(self.bot.c2t[seg]))
+                    except AttributeError as e:
+                        self.bot.logger.info(f'send message abort possibly due to missing channel or emoji where is {e}')
                 return
 
     @commands.command()
