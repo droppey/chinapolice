@@ -161,7 +161,7 @@ class Reaction(commands.Cog):
         if arg not in self.bot.china_word:
             await ctx.channel.send('親 這個詞沒被誤認成支語啊 您佬再檢查一下唄')
             return
-        if not ctx.message.author.guild_permissions.administrator:
+        if not ctx.message.author.guild_permissions.manage_roles:
             msg = await ctx.channel.send(embed=Embed(title=f'完成五人投票 刪除詞彙 {arg} 人人有責',
                         description='我話講完 誰贊成誰反對 請用👀'))
             await msg.add_reaction('👀')
