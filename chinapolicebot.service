@@ -1,0 +1,18 @@
+[Unit]
+Description=china police bot service daemon
+After=multi-user.target
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=3
+User=food
+ExecStartPre=/bin/kill `/bin/ps aux | /bin/grep chinapolice | /bin/grep -v grep | /usr/bin/awk '{ print $2 }'`
+WorkingDirectory=/path/to/chinapolice
+ExecStart=/usr/bin/python /path/to/chinapolice/index.py
+StandardError=syslog
+SyslogIdentifier=chinapolice
+
+[Install]
+WantBy=multi-user.target
+~
